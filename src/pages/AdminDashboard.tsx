@@ -15,6 +15,8 @@ import MediaGallery from "@/components/admin/MediaGallery";
 import HeroCarouselManager from "@/components/admin/HeroCarouselManager";
 import TestMediaUpload from "@/components/admin/TestMediaUpload";
 import PasswordChange from "@/components/admin/PasswordChange";
+import TeamManager from "@/components/admin/TeamManager";
+import FoundersMessageManager from "@/components/admin/FoundersMessageManager";
 
 interface DashboardMetrics {
   totalArticles: number;
@@ -261,11 +263,12 @@ const AdminDashboard = () => {
 
           {/* Management Tabs */}
           <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-            <TabsList className="grid w-full grid-cols-5">
+            <TabsList className="grid w-full grid-cols-6">
               <TabsTrigger value="articles">Articles</TabsTrigger>
               <TabsTrigger value="enhanced-articles">Enhanced Articles</TabsTrigger>
               <TabsTrigger value="media">Workshops & Trainings</TabsTrigger>
               <TabsTrigger value="hero">Hero Carousel</TabsTrigger>
+              <TabsTrigger value="team">Team</TabsTrigger>
               <TabsTrigger value="settings">Settings</TabsTrigger>
             </TabsList>
             
@@ -365,6 +368,27 @@ const AdminDashboard = () => {
                   <HeroCarouselManager />
                 </CardContent>
               </Card>
+            </TabsContent>
+            
+            <TabsContent value="team" className="space-y-6">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Users className="h-5 w-5" />
+                      Team Management
+                    </CardTitle>
+                    <CardDescription>
+                      Manage team members and their profile information
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <TeamManager />
+                  </CardContent>
+                </Card>
+                
+                <FoundersMessageManager />
+              </div>
             </TabsContent>
             
             <TabsContent value="settings" className="space-y-6">
