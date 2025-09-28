@@ -1,47 +1,79 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Upload, Image, Edit, Trash2, Save, X, Plus, User } from "lucide-react";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { Upload, Image, Edit, Save, X, User } from "lucide-react";
+
+interface TeamMemberImage {
+  id: string;
+  name: string;
+  image_url: string;
+  created_at: string;
+  updated_at: string;
+}
 
 interface TeamMember {
-  id: string;
   name: string;
   title: string;
   description: string;
-  image_url?: string;
-  order_index: number;
-  is_active: boolean;
-  created_at: string;
 }
 
 const TeamManager = () => {
-  const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
+  const [teamMemberImages, setTeamMemberImages] = useState<TeamMemberImage[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [editingMember, setEditingMember] = useState<TeamMember | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [showAddForm, setShowAddForm] = useState(false);
   const { toast } = useToast();
 
-  const fetchTeamMembers = async () => {
+  const teamMembers: TeamMember[] = [
+    {
+      name: "Samaviya Sajjad",
+      title: "Founder & Director",
+      description: "Samaviya Sajjad is a graduate of the University of California, Berkeley, and the founder of the Institute of Policy and Law Reform (IPLR), a consultancy and research institute committed to legal reform, education, and accessibility."
+    },
+    {
+      name: "Sundus Rauf",
+      title: "Senior Research Associate - Legal & Policy Development, PhD Candidate in Forensic Science",
+      description: "An experienced legal researcher and academic with a strong background in criminology, human rights law, and legal reform."
+    },
+    {
+      name: "Deeya Farukh Niaz",
+      title: "Senior Research Associate - Litigation Department",
+      description: "Deeya is a graduate of University of Law, London, UK. A dedicated advocate specializing in human rights, environmental law, and corporate litigation."
+    },
+    {
+      name: "Laiba Bashir",
+      title: "Senior Research Associate - Environmental Policy & Sustainability",
+      description: "An environmental engineer specializing in climate action, sustainability, and environmental impact assessments."
+    },
+    {
+      name: "Ayesha Imam",
+      title: "Research Associate",
+      description: "A research associate at IPLR for the past two years, Ayesha has played a key role in researching various environmental aspects."
+    },
+    {
+      name: "Ume Rubab",
+      title: "Research Associate - Legal & Policy Initiatives",
+      description: "A dedicated legal researcher and active member of IPLR's research team."
+    }
+  ];
+
+  const fetchTeamMemberImages = async () => {
     try {
       const { data, error } = await supabase
-        .from('team_members')
-        .select('*')
-        .order('order_index', { ascending: true });
+        .from('team_member_images')
+        .select('*');
 
       if (error) throw error;
-      setTeamMembers(data || []);
+      setTeamMemberImages(data || []);
     } catch (error) {
       toast({
         title: "Error",
-        description: "Failed to fetch team members",
+        description: "Failed to fetch team member images",
         variant: "destructive",
       });
     } finally {
@@ -82,60 +114,50 @@ const TeamManager = () => {
     return publicUrl;
   };
 
-  const saveTeamMember = async (memberData: Partial<TeamMember>) => {
+  const saveTeamMemberImage = async (memberName: string) => {
+    if (!selectedFile || !memberName) return;
+
     try {
       setIsUploading(true);
-      let imageUrl = memberData.image_url;
+      
+      // Upload image
+      const imageUrl = await uploadImage(selectedFile);
 
-      // Upload image if selected
-      if (selectedFile) {
-        imageUrl = await uploadImage(selectedFile);
-      }
-
-      const dataToSave = {
-        ...memberData,
-        image_url: imageUrl,
-      };
-
-      if (editingMember) {
-        // Update existing member
+      // Check if image already exists for this member
+      const existingImage = teamMemberImages.find(img => img.name === memberName);
+      
+      if (existingImage) {
+        // Update existing image
         const { error } = await supabase
-          .from('team_members')
-          .update(dataToSave)
-          .eq('id', editingMember.id);
+          .from('team_member_images')
+          .update({ image_url: imageUrl })
+          .eq('name', memberName);
 
         if (error) throw error;
-
-        toast({
-          title: "Success",
-          description: "Team member updated successfully",
-        });
       } else {
-        // Create new member
+        // Create new image record
         const { error } = await supabase
-          .from('team_members')
+          .from('team_member_images')
           .insert([{
-            ...dataToSave,
-            order_index: teamMembers.length,
-            is_active: true
+            name: memberName,
+            image_url: imageUrl
           }]);
 
         if (error) throw error;
-
-        toast({
-          title: "Success",
-          description: "Team member added successfully",
-        });
       }
 
+      toast({
+        title: "Success",
+        description: `Image uploaded successfully for ${memberName}`,
+      });
+
       setEditingMember(null);
-      setShowAddForm(false);
       setSelectedFile(null);
-      fetchTeamMembers();
+      fetchTeamMemberImages();
     } catch (error) {
       toast({
         title: "Error",
-        description: "Failed to save team member",
+        description: "Failed to upload image",
         variant: "destructive",
       });
     } finally {
@@ -143,57 +165,38 @@ const TeamManager = () => {
     }
   };
 
-  const deleteTeamMember = async (id: string) => {
+  const deleteTeamMemberImage = async (memberName: string) => {
     try {
       const { error } = await supabase
-        .from('team_members')
+        .from('team_member_images')
         .delete()
-        .eq('id', id);
+        .eq('name', memberName);
 
       if (error) throw error;
 
       toast({
         title: "Success",
-        description: "Team member deleted successfully",
+        description: `Image removed for ${memberName}`,
       });
 
-      fetchTeamMembers();
+      fetchTeamMemberImages();
     } catch (error) {
       toast({
         title: "Error",
-        description: "Failed to delete team member",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const toggleMemberStatus = async (id: string, currentStatus: boolean) => {
-    try {
-      const { error } = await supabase
-        .from('team_members')
-        .update({ is_active: !currentStatus })
-        .eq('id', id);
-
-      if (error) throw error;
-
-      toast({
-        title: "Success",
-        description: `Team member ${!currentStatus ? 'activated' : 'deactivated'}`,
-      });
-
-      fetchTeamMembers();
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to update team member status",
+        description: "Failed to delete image",
         variant: "destructive",
       });
     }
   };
 
   useEffect(() => {
-    fetchTeamMembers();
+    fetchTeamMemberImages();
   }, []);
+
+  const getImageForMember = (memberName: string) => {
+    const imageData = teamMemberImages.find(img => img.name === memberName);
+    return imageData?.image_url;
+  };
 
   if (isLoading) {
     return (
@@ -217,30 +220,22 @@ const TeamManager = () => {
 
   return (
     <div className="space-y-6">
-      {/* Add New Team Member Button */}
       <div className="flex justify-between items-center">
-        <h3 className="text-lg font-semibold">Team Members ({teamMembers.length})</h3>
-        <Button
-          onClick={() => setShowAddForm(true)}
-          className="flex items-center gap-2"
-        >
-          <Plus className="h-4 w-4" />
-          Add Team Member
-        </Button>
+        <h3 className="text-lg font-semibold">Team Member Images ({teamMembers.length})</h3>
+        <p className="text-sm text-muted-foreground">Upload profile images for team members</p>
       </div>
 
-      {/* Add/Edit Form */}
-      {(showAddForm || editingMember) && (
+      {/* Edit Image Form */}
+      {editingMember && (
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center justify-between">
-              {editingMember ? "Edit Team Member" : "Add New Team Member"}
+              Upload Image for {editingMember.name}
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => {
                   setEditingMember(null);
-                  setShowAddForm(false);
                   setSelectedFile(null);
                 }}
               >
@@ -250,35 +245,6 @@ const TeamManager = () => {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="text-sm font-medium mb-2 block">Name</label>
-                  <Input
-                    value={editingMember?.name || ''}
-                    onChange={(e) => setEditingMember(prev => ({ ...prev!, name: e.target.value }))}
-                    placeholder="Enter team member name"
-                  />
-                </div>
-                <div>
-                  <label className="text-sm font-medium mb-2 block">Title</label>
-                  <Input
-                    value={editingMember?.title || ''}
-                    onChange={(e) => setEditingMember(prev => ({ ...prev!, title: e.target.value }))}
-                    placeholder="Enter team member title"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="text-sm font-medium mb-2 block">Description</label>
-                <Textarea
-                  value={editingMember?.description || ''}
-                  onChange={(e) => setEditingMember(prev => ({ ...prev!, description: e.target.value }))}
-                  placeholder="Enter team member description"
-                  rows={4}
-                />
-              </div>
-
               <div>
                 <label className="text-sm font-medium mb-2 block">Profile Image</label>
                 <div className="flex items-center gap-4">
@@ -294,10 +260,11 @@ const TeamManager = () => {
                     </Badge>
                   )}
                 </div>
-                {editingMember?.image_url && !selectedFile && (
+                {getImageForMember(editingMember.name) && !selectedFile && (
                   <div className="mt-2">
+                    <p className="text-sm text-muted-foreground mb-2">Current image:</p>
                     <img
-                      src={editingMember.image_url}
+                      src={getImageForMember(editingMember.name)}
                       alt="Current image"
                       className="w-16 h-16 rounded-full object-cover border"
                     />
@@ -310,17 +277,16 @@ const TeamManager = () => {
                   variant="outline"
                   onClick={() => {
                     setEditingMember(null);
-                    setShowAddForm(false);
                     setSelectedFile(null);
                   }}
                 >
                   Cancel
                 </Button>
                 <Button
-                  onClick={() => saveTeamMember(editingMember || {})}
-                  disabled={isUploading || !editingMember?.name || !editingMember?.title}
+                  onClick={() => saveTeamMemberImage(editingMember.name)}
+                  disabled={isUploading || !selectedFile}
                 >
-                  {isUploading ? "Saving..." : editingMember?.id ? "Update" : "Add"} Team Member
+                  {isUploading ? "Uploading..." : "Upload Image"}
                 </Button>
               </div>
             </div>
@@ -330,25 +296,16 @@ const TeamManager = () => {
 
       {/* Team Members List */}
       <div className="space-y-4">
-        {teamMembers.length === 0 ? (
-          <Card className="p-8 text-center">
-            <User className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-            <h3 className="text-lg font-semibold mb-2">No Team Members</h3>
-            <p className="text-muted-foreground mb-4">Add your first team member to get started</p>
-            <Button onClick={() => setShowAddForm(true)}>
-              <Plus className="h-4 w-4 mr-2" />
-              Add Team Member
-            </Button>
-          </Card>
-        ) : (
-          teamMembers.map((member) => (
-            <Card key={member.id} className="p-4">
+        {teamMembers.map((member) => {
+          const memberImage = getImageForMember(member.name);
+          return (
+            <Card key={member.name} className="p-4">
               <div className="flex items-start space-x-4">
                 {/* Profile Image */}
                 <div className="flex-shrink-0">
-                  {member.image_url ? (
+                  {memberImage ? (
                     <img
-                      src={member.image_url}
+                      src={memberImage}
                       alt={member.name}
                       className="w-16 h-16 rounded-full object-cover border-2 border-primary"
                     />
@@ -367,8 +324,8 @@ const TeamManager = () => {
                       <p className="text-sm text-primary font-medium">{member.title}</p>
                     </div>
                     <div className="flex items-center gap-2 ml-2">
-                      <Badge variant={member.is_active ? "default" : "secondary"}>
-                        {member.is_active ? "Active" : "Inactive"}
+                      <Badge variant={memberImage ? "default" : "secondary"}>
+                        {memberImage ? "Image Added" : "No Image"}
                       </Badge>
                     </div>
                   </div>
@@ -385,48 +342,24 @@ const TeamManager = () => {
                       onClick={() => setEditingMember(member)}
                     >
                       <Edit className="h-3 w-3 mr-1" />
-                      Edit
+                      {memberImage ? "Change Image" : "Add Image"}
                     </Button>
 
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => toggleMemberStatus(member.id, member.is_active)}
-                    >
-                      {member.is_active ? "Deactivate" : "Activate"}
-                    </Button>
-
-                    <AlertDialog>
-                      <AlertDialogTrigger asChild>
-                        <Button size="sm" variant="outline">
-                          <Trash2 className="h-3 w-3 mr-1" />
-                          Delete
-                        </Button>
-                      </AlertDialogTrigger>
-                      <AlertDialogContent>
-                        <AlertDialogHeader>
-                          <AlertDialogTitle>Delete Team Member</AlertDialogTitle>
-                          <AlertDialogDescription>
-                            Are you sure you want to delete {member.name}? This action cannot be undone.
-                          </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                          <AlertDialogCancel>Cancel</AlertDialogCancel>
-                          <AlertDialogAction
-                            onClick={() => deleteTeamMember(member.id)}
-                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                          >
-                            Delete
-                          </AlertDialogAction>
-                        </AlertDialogFooter>
-                      </AlertDialogContent>
-                    </AlertDialog>
+                    {memberImage && (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => deleteTeamMemberImage(member.name)}
+                      >
+                        Remove Image
+                      </Button>
+                    )}
                   </div>
                 </div>
               </div>
             </Card>
-          ))
-        )}
+          );
+        })}
       </div>
     </div>
   );
