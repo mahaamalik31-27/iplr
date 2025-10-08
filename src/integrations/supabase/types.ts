@@ -125,6 +125,33 @@ export type Database = {
         }
         Relationships: []
       }
+      founders_message: {
+        Row: {
+          created_at: string
+          id: string
+          image_alt: string | null
+          image_url: string | null
+          message: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          image_alt?: string | null
+          image_url?: string | null
+          message: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          image_alt?: string | null
+          image_url?: string | null
+          message?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

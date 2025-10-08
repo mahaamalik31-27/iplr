@@ -10,6 +10,8 @@ interface TeamMemberImage {
 interface FoundersMessage {
   id: string;
   message: string;
+  image_url: string | null;
+  image_alt: string | null;
   updated_at: string;
 }
 
@@ -25,14 +27,14 @@ const AboutSection = () => {
       description: "Samaviya Sajjad is a graduate of the University of California, Berkeley, and the founder of the Institute of Policy and Law Reform (IPLR), a consultancy and research institute committed to legal reform, education, and accessibility. Samaviya has an extensive legal background, having worked with institutions such as RIAA Barker Gillette, Lahore Transport Company, and the University of California, Berkeley's Law Clinic. Her work at the clinic included drafting an observation report on the Convention Against Torture, which was later published by the United Nations Human Rights Council. She has also contributed to reports and legal memoranda for UN Peacekeeping Operations, the Department of Field Support, and Political and Legal Affairs at the UN. As a visiting professor at LUMS, she teaches Legal Reasoning. She is also a regular guest on television panels, raising awareness about various legal rights, with a particular focus on environmental law and sustainability. Through IPLR, she spearheads awareness campaigns on environmental issues via social media, training programs, and workshops. Additionally, IPLR has launched a Green Ambassadors Program across 35 schools, appointing a student from each institution to lead efforts in eliminating single-use plastic from their school canteens. This initiative empowers students to take actionable steps toward sustainability and instills long-term environmental responsibility."
     },
     {
+      name: "Deeya Farukh Niaz",
+      title: "Head of Litigation Department",
+      description: "Deeya is a graduate of University of Law, London, UK. A dedicated advocate specializing in human rights, environmental law, and corporate litigation. She is an Advocate of the High Court Pakistan and leads IPLR's Litigation Department, managing legal strategies, petitions, and pro bono litigation and policy advocacy efforts. Deeya has successfully initiated legal collaborations with the Lahore Development Authority for dust control policies and played a significant role in IPLR's Fast Fashion Waste Initiative."
+    },
+    {
       name: "Sundus Rauf",
       title: "Senior Research Associate - Legal & Policy Development, PhD Candidate in Forensic Science",
       description: "An experienced legal researcher and academic with a strong background in criminology, human rights law, and legal reform. She has been deeply involved in policy analysis, legislative drafting, and advocacy for social and environmental justice. Over the years, she has contributed to research on climate change policy, global warming impacts, and legal frameworks for environmental protection. She focuses on policy development, legislative analysis, and legal consultancy, particularly in areas concerning human rights, environmental law, and corporate governance. Sundus has also presented her research at national and international conferences, solidifying her expertise in legal policy development and reform."
-    },
-    {
-      name: "Deeya Farukh Niaz",
-      title: "Senior Research Associate - Litigation Department",
-      description: "Deeya is a graduate of University of Law, London, UK. A dedicated advocate specializing in human rights, environmental law, and corporate litigation. She is an Advocate of the High Court Pakistan and leads IPLR's Litigation Department, managing legal strategies, petitions, and pro bono litigation and policy advocacy efforts. Deeya has successfully initiated legal collaborations with the Lahore Development Authority for dust control policies and played a significant role in IPLR's Fast Fashion Waste Initiative."
     },
     {
       name: "Laiba Bashir",
@@ -139,9 +141,24 @@ const AboutSection = () => {
                 Founders Message
               </h3>
               <div className="w-16 h-px bg-foreground mx-auto mb-6"></div>
-              <p className="font-body text-foreground/80 leading-relaxed text-center max-w-4xl mx-auto">
-                {foundersMessage.message}
-              </p>
+              
+              <div className="flex flex-col lg:flex-row gap-8 items-start">
+                {foundersMessage.image_url && (
+                  <div className="flex-shrink-0 w-full lg:w-1/3">
+                    <img
+                      src={foundersMessage.image_url}
+                      alt={foundersMessage.image_alt || "Founders message image"}
+                      className="w-full h-auto max-w-sm mx-auto lg:mx-0 rounded-lg shadow-lg object-cover"
+                    />
+                  </div>
+                )}
+                
+                <div className={`flex-1 ${foundersMessage.image_url ? 'lg:text-left' : 'text-center'}`}>
+                  <p className="font-body text-foreground/80 leading-relaxed max-w-4xl mx-auto lg:mx-0">
+                    {foundersMessage.message}
+                  </p>
+                </div>
+              </div>
             </div>
           </div>
         )}
