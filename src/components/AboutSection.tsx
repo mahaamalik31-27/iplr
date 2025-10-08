@@ -153,8 +153,8 @@ const AboutSection = () => {
                   </div>
                 )}
                 
-                <div className={`flex-1 ${foundersMessage.image_url ? 'lg:text-left' : 'text-center'}`}>
-                  <p className="font-body text-foreground/80 leading-relaxed max-w-4xl mx-auto lg:mx-0">
+                <div className="flex-1 text-center">
+                  <p className="font-body text-foreground/80 leading-relaxed max-w-4xl mx-auto">
                     {foundersMessage.message}
                   </p>
                 </div>
