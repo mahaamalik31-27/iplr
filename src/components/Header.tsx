@@ -38,7 +38,7 @@ const Header = () => {
               IPLR
             </h1>
             <p className="text-[10px] sm:text-xs font-body text-muted-foreground uppercase tracking-[0.15em] sm:tracking-[0.2em] border-t border-b border-border py-1 px-2 sm:px-0">
-              INSTITUTE OF POLICY AND LAW REFORMS
+              INSTITUTE OF POLICY AND LAW REFORM
             </p>
           </div>
 
