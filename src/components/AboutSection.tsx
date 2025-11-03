@@ -7,7 +7,7 @@ interface TeamMemberImage {
   image_url: string;
 }
 
-interface Founder's Message {
+interface FounderMessage {
   id: string;
   message: string;
   image_url: string | null;
