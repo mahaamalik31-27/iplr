@@ -138,7 +138,7 @@ const AboutSection = () => {
           <div className="mb-16">
             <div className="bg-background/50 border border-border rounded-lg p-8">
               <h3 className="text-2xl font-academic font-semibold text-foreground mb-6 text-center">
-                Founders Message
+                Founder’s Message
               </h3>
               <div className="w-16 h-px bg-foreground mx-auto mb-6"></div>
               
