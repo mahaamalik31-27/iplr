@@ -49,7 +49,7 @@ const Header = () => {
             onClick={() => window.location.href = '/admin/login'}
             className="p-1 sm:p-2 absolute right-12 sm:right-16 top-2 sm:top-6 text-[10px] sm:text-xs"
           >
-            Admin
+            
           </Button>
 
           {/* Search Toggle */}
