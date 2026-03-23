@@ -87,7 +87,20 @@ const Header = () => {
                     className="px-4 lg:px-6 py-4 lg:py-6 text-xs lg:text-sm font-body font-semibold text-foreground uppercase tracking-[0.1em] lg:tracking-[0.15em] hover:bg-muted/30 hover:text-foreground/80 transition-all duration-300 border-b-3 border-transparent hover:border-foreground cursor-pointer whitespace-nowrap flex items-center gap-1"
                     onMouseEnter={() => item.submenu && setActiveDropdown(item.name)}
                     onMouseLeave={() => setActiveDropdown(null)}
-                  >
+                  onClick={() => {
+    if (!item.submenu) {
+      if (item.href === '#home') {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      } else {
+        const element = document.querySelector(item.href);
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      }
+    }
+  }}
+                    >
+
                     {item.name}
                     {item.submenu && <ChevronDown className="h-3 w-3" />}
                     <span className="absolute inset-x-0 bottom-0 h-0.5 bg-foreground scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-center"></span>
